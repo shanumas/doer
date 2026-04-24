@@ -1,0 +1,50 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - doer
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: doer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+    networks:
+      - doer
+    restart: unless-stopped
+
+  # Agent image — built here so it's available; spawned dynamically per task, not kept running
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    image: doer-agent
+    entrypoint: ["true"]
+    restart: "no"
+    networks:
+      - doer
+
+networks:
+  doer:
+    name: doer
+
+volumes:
+  pgdata:

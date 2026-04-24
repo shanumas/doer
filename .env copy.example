@@ -1,0 +1,31 @@
+# ── Database ──────────────────────────────────────────────
+DATABASE_URL=postgresql://postgres:postgres@db:5432/doer
+
+# ── GitHub ────────────────────────────────────────────────
+# Personal access token or GitHub App installation token
+# Scopes needed: repo, read:org, read:project
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+GITHUB_REPO=your-org/your-repo         # e.g. acme/backend
+GITHUB_BASE_BRANCH=main                # branch to merge PRs into
+
+# ── Microsoft Teams ───────────────────────────────────────
+# Incoming webhook URL from Teams channel connector
+TEAMS_WEBHOOK_URL=https://your-org.webhook.office.com/webhookb2/...
+
+# ── AI Model (OpenAI-compatible) ──────────────────────────
+AI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+AI_MODEL=gpt-4o                        # or claude-opus-4-6, mistral-large, etc.
+AI_BASE_URL=                           # leave blank for OpenAI
+                                       # Azure OpenAI: https://your.openai.azure.com
+                                       # Ollama: http://host.docker.internal:11434/v1
+                                       # OpenRouter: https://openrouter.ai/api/v1
+
+# ── App ───────────────────────────────────────────────────
+APP_URL=http://localhost:3000          # used for approve/deny links in Teams card
+CRON_SECRET=change-me-to-a-random-string
+SCHEDULER_CRON=*/10 * * * *           # how often to check for new issues (default: 10 min)
+
+# ── Docker ────────────────────────────────────────────────
+DOCKER_NETWORK=doer                    # must match the network in docker-compose.yml
+AGENT_IMAGE=doer-agent
+# DOCKER_SOCKET=/var/run/docker.sock   # override if needed

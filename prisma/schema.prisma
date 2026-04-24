@@ -1,0 +1,57 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id            String     @id @default(cuid())
+  issueNumber   Int
+  issueTitle    String
+  issueBody     String     @default("")
+  repo          String
+  status        TaskStatus @default(PENDING_APPROVAL)
+  approvalToken String     @unique @default(cuid())
+  prUrl         String?
+  containerId   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  logs          Log[]
+
+  @@unique([repo, issueNumber])
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  message   String
+  level     LogLevel @default(INFO)
+  createdAt DateTime @default(now())
+}
+
+enum TaskStatus {
+  PENDING_APPROVAL
+  APPROVED
+  RUNNING
+  DONE
+  FAILED
+  DENIED
+}
+
+enum LogLevel {
+  INFO
+  DECISION
+  ERROR
+}
+
+// Key-value store for runtime configuration set via the UI
+model Config {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
