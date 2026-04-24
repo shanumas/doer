@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["dockerode", "node-cron"],
+  serverExternalPackages: ["dockerode"],
 };
 
 export default nextConfig;

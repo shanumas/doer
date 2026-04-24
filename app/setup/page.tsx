@@ -41,9 +41,12 @@ function SetupInner() {
 
   return (
     <div className="max-w-xl mx-auto p-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Setup</h1>
-        <p className="text-gray-400 text-sm mt-1">Connect your tools to get started.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Setup</h1>
+          <p className="text-gray-400 text-sm mt-1">Connect your tools to get started.</p>
+        </div>
+        <a href="/" className="text-sm text-gray-400 hover:text-gray-200 transition-colors">← Dashboard</a>
       </div>
 
       {error && (

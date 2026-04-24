@@ -79,6 +79,12 @@ Repo: ${REPO}`,
       tool_choice: "auto",
     });
 
+    if (!response.choices?.length) {
+      const raw = JSON.stringify(response);
+      await log(`API returned no choices. Raw response: ${raw}`, "ERROR");
+      throw new Error(`No choices in response: ${raw}`);
+    }
+
     const msg = response.choices[0].message;
     messages.push(msg);
 

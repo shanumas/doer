@@ -3,11 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: sh -c "npx prisma db push && npm run dev"
     ports:
       - "3000:3000"
     env_file: .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app                  # mount source — changes reflect instantly
+      - /app/node_modules       # keep container's node_modules, don't override with host
+      - /app/.next              # same for build cache
     depends_on:
       db:
         condition: service_healthy

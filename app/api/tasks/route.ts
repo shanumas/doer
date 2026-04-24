@@ -6,7 +6,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     select: {
       id: true, issueNumber: true, issueTitle: true,
-      repo: true, status: true, prUrl: true, createdAt: true,
+      repo: true, status: true, prUrl: true, createdAt: true, approvalToken: true,
     },
   });
   return NextResponse.json(tasks);
