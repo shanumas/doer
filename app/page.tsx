@@ -11,15 +11,29 @@ const STATUS_COLOR: Record<string, string> = {
   DENIED:           "bg-gray-500/20 text-gray-400",
 };
 
+const PR_STATE_STYLE: Record<string, string> = {
+  open:   "bg-blue-500/20 text-blue-300",
+  merged: "bg-purple-500/20 text-purple-300",
+  closed: "bg-gray-500/20 text-gray-400",
+};
+
 export default function Dashboard() {
   const [issues, setIssues]   = useState<any[]>([]);
   const [tasks, setTasks]     = useState<any[]>([]);
+  const [prStates, setPrStates] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [fixing, setFixing]   = useState<number | null>(null);
   const [approving, setApproving] = useState<string | null>(null);
 
   const refresh = () => {
-    fetch("/api/tasks").then((r) => r.json()).then(setTasks);
+    fetch("/api/tasks").then((r) => r.json()).then((data: any[]) => {
+      setTasks(data);
+      data.filter((t) => t.prUrl).forEach((t) => {
+        fetch(`/api/tasks/${t.id}/pr-state`)
+          .then((r) => r.json())
+          .then((d) => { if (d.state) setPrStates((prev) => ({ ...prev, [t.id]: d.state })); });
+      });
+    });
     fetch("/api/issues").then((r) => r.json()).then(setIssues);
   };
 
@@ -100,13 +114,18 @@ export default function Dashboard() {
                   selected === task.id ? "bg-gray-800" : "hover:bg-gray-900"
                 }`}>
                 <p className="text-sm font-medium truncate">#{task.issueNumber} {task.issueTitle}</p>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${STATUS_COLOR[task.status]}`}>
                     {task.status.replace(/_/g, " ")}
                   </span>
                   {task.prUrl && (
                     <a href={task.prUrl} target="_blank" onClick={(e) => e.stopPropagation()}
                       className="text-xs text-blue-400 hover:underline">PR →</a>
+                  )}
+                  {prStates[task.id] && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${PR_STATE_STYLE[prStates[task.id]] ?? "bg-gray-500/20 text-gray-400"}`}>
+                      PR {prStates[task.id]}
+                    </span>
                   )}
                 </div>
                 {task.status === "PENDING_APPROVAL" && (

@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { existsSync } from "fs";
 import OpenAI from "openai";
 
 const {
@@ -25,8 +26,9 @@ async function log(message: string, level = "INFO") {
 }
 
 function bash(cmd: string): string {
+  const cwd = existsSync("/workspace") ? "/workspace" : "/";
   try {
-    return execSync(cmd, { cwd: "/workspace", encoding: "utf8", timeout: 60_000 });
+    return execSync(cmd, { cwd, encoding: "utf8", timeout: 60_000 });
   } catch (e: any) {
     return e.stdout ?? e.message ?? "command failed";
   }
@@ -49,12 +51,13 @@ async function run() {
   await log(`Starting agent for issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}`, "INFO");
 
   // Setup workspace
+  await log(`Cloning ${REPO}…`, "INFO");
   bash(`git clone https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git /workspace`);
   bash(`git config user.email "doer-bot@users.noreply.github.com"`);
   bash(`git config user.name "doer"`);
   const branch = `doer/issue-${ISSUE_NUMBER}`;
   bash(`git checkout -b ${branch}`);
-  await log(`Cloned ${REPO}, branch: ${branch}`, "INFO");
+  await log(`Cloned ${REPO} → branch ${branch}`, "INFO");
 
   const messages: OpenAI.ChatCompletionMessageParam[] = [{
     role: "system",
@@ -68,15 +71,18 @@ Repo: ${REPO}`,
     content: `Fix issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}\n\n${issueBody}`,
   }];
 
+  await log(`Starting AI agent loop (max 25 iterations)…`, "INFO");
   let iterations = 0;
   const MAX = 25;
 
   while (iterations++ < MAX) {
+    await log(`Iteration ${iterations}/${MAX}`, "INFO");
     const response = await client.chat.completions.create({
       model: AI_MODEL,
       messages,
       tools: TOOLS,
       tool_choice: "auto",
+      max_tokens: 4096,
     });
 
     if (!response.choices?.length) {
@@ -103,7 +109,10 @@ Repo: ${REPO}`,
     }
   }
 
+  await log(`Agent loop finished after ${iterations - 1} iterations`, "INFO");
+
   // Commit and push
+  await log(`Committing changes…`, "INFO");
   const diff = bash("git diff --stat HEAD");
   if (!diff.trim()) {
     await log("No file changes detected. Nothing to commit.", "INFO");
@@ -117,6 +126,7 @@ Repo: ${REPO}`,
 
   bash("git add -A");
   bash(`git commit -m "fix: resolve issue #${ISSUE_NUMBER} — ${ISSUE_TITLE}"`);
+  await log(`Pushing branch ${branch}…`, "INFO");
   bash(`git push origin ${branch}`);
   await log(`Pushed branch ${branch}`, "DECISION");
 

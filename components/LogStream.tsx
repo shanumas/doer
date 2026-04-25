@@ -7,8 +7,15 @@ const LEVEL_STYLE: Record<string, string> = {
   ERROR: "text-red-400",
 };
 
+const PR_STATE_STYLE: Record<string, string> = {
+  open:   "bg-blue-500/20 text-blue-300",
+  merged: "bg-purple-500/20 text-purple-300",
+  closed: "bg-gray-500/20 text-gray-400",
+};
+
 export default function LogStream({ taskId, task }: { taskId: string; task: any }) {
   const [logs, setLogs] = useState<any[]>([]);
+  const [prState, setPrState] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,6 +28,17 @@ export default function LogStream({ taskId, task }: { taskId: string; task: any 
   }, [taskId]);
 
   useEffect(() => {
+    if (!task?.prUrl) return;
+    const check = () =>
+      fetch(`/api/tasks/${taskId}/pr-state`)
+        .then((r) => r.json())
+        .then((d) => { if (d.state) setPrState(d.state); });
+    check();
+    const t = setInterval(check, 30_000);
+    return () => clearInterval(t);
+  }, [taskId, task?.prUrl]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
@@ -28,12 +46,17 @@ export default function LogStream({ taskId, task }: { taskId: string; task: any 
     <div className="p-6 h-full flex flex-col">
       {task && (
         <div className="mb-4 pb-4 border-b border-gray-800">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h2 className="font-semibold">#{task.issueNumber} {task.issueTitle}</h2>
             {task.prUrl && (
               <a href={task.prUrl} target="_blank" className="text-xs text-blue-400 hover:underline">
                 View PR →
               </a>
+            )}
+            {prState && (
+              <span className={`text-xs px-2 py-0.5 rounded font-medium ${PR_STATE_STYLE[prState] ?? "bg-gray-500/20 text-gray-400"}`}>
+                PR {prState}
+              </span>
             )}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">{task.repo}</p>

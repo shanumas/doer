@@ -21,7 +21,7 @@ export async function spawnAgent(taskId: string) {
     `AI_API_KEY=${process.env.AI_API_KEY}`,
     `AI_BASE_URL=${process.env.AI_BASE_URL ?? ""}`,
     `AI_MODEL=${process.env.AI_MODEL ?? "gpt-4o"}`,
-    `APP_URL=${process.env.APP_URL ?? "http://app:3000"}`,
+    `APP_URL=http://app:3000`,
     `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`,
     `NODE_TLS_REJECT_UNAUTHORIZED=0`,
   ];
