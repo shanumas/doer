@@ -85,9 +85,11 @@ Repo: ${REPO}`,
       max_tokens: 4096,
     });
 
+    console.log("RAW API RESPONSE:", JSON.stringify(response));
     if (!response.choices?.length) {
       const raw = JSON.stringify(response);
-      await log(`API returned no choices. Raw response: ${raw}`, "ERROR");
+      console.error("No choices in response:", raw);
+      await log(`API error: ${raw}`, "ERROR");
       throw new Error(`No choices in response: ${raw}`);
     }
 
